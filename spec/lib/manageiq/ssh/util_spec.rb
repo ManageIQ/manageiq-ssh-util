@@ -1,9 +1,9 @@
-require 'util/MiqSshUtil'
+require 'manageiq/ssh/util'
 
-describe MiqSshUtil do
+describe ManageIQ::SSH::Util do
   context "#temp_cmd_file" do
     before do
-      @ssh_util = MiqSshUtil.new("localhost", "temp", "something")
+      @ssh_util = ManageIQ::SSH::Util.new("localhost", "temp", "something")
     end
 
     it "creates a file" do
