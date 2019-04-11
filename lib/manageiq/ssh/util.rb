@@ -74,11 +74,15 @@ module ManageIQ
       # Download the contents of the remote +from+ file to the local +to+ file. Some
       # messages will be written to the global ManageIQ log in debug mode.
       #
+      # Note that the returned data is normally a Net::SFTP::Operations::Download
+      # object. If you want to store the file contents in memory, pass an IO object
+      # as the second argument.
+      #
       def get_file(from, to)
         run_session do |ssh|
-          $log&.debug("MiqSshUtil::get_file - Copying file #{@host}:#{from} to #{to}.")
+          $log&.debug("MiqSshUtil::get_file - Copying file #{host}:#{from} to #{to}.")
           data = ssh.sftp.download!(from, to)
-          $log&.debug("MiqSshUtil::get_file - Copying of #{@host}:#{from} to #{to}, complete.")
+          $log&.debug("MiqSshUtil::get_file - Copying of #{host}:#{from} to #{to}, complete.")
           return data
         end
       end
