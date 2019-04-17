@@ -10,7 +10,7 @@ RSpec.describe ManageIQ::SSH::Util do
     before do
       allow(ssh_util).to receive(:run_session).and_return(ssh_session)
       allow(ssh_session).to receive(:sftp).and_return(sftp_session)
-      allow(sftp_session).to receive(:dowload!).and_return(sftp_download)
+      allow(sftp_session).to receive(:download!).and_return(sftp_download)
     end
 
     it "retrieves a remote file" do
