@@ -94,12 +94,12 @@ module ManageIQ
       # an error is raised.
       #
       def put_file(to, content = nil, path = nil)
-        raise "Need to provide either content or path" if content.nil? && path.nil?
+        raise ArgumentError, "Need to provide either content or path" if content.nil? && path.nil?
         run_session do |ssh|
           content ||= IO.binread(path)
           $log&.debug("MiqSshUtil::put_file - Copying file to #{@host}:#{to}.")
           ssh.sftp.file.open(to, 'wb') { |f| f.write(content) }
-          $log&.debug("MiqSshUtil::get_file - Copying of file to #{@host}:#{to}, complete.")
+          $log&.debug("MiqSshUtil::put_file - Copying of file to #{@host}:#{to}, complete.")
         end
       end
 
