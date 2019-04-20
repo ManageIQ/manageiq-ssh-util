@@ -15,6 +15,44 @@ RSpec.describe ManageIQ::SSH::Util do
     allow(sftp_session).to receive(:download!).and_return(sftp_download)
   end
 
+  context "#put_file" do
+    let(:target) { Tempfile.new }
+    let(:source) { Tempfile.new }
+
+    before do
+      allow(sftp_session).to receive(:file).and_return(File)
+    end
+
+    it "raises an error if no target is provided" do
+      expect { ssh_util.put_file}.to raise_error(ArgumentError)
+    end
+
+    it "raises an error if both the content and path are nil" do
+      error_msg = "Need to provide either content or path"
+      expect { ssh_util.put_file('stuff') }.to raise_error(ArgumentError, error_msg)
+    end
+
+    it "puts file content as expected if content is provided" do
+      expect(ssh_util.put_file(target.path, 'hello')).to be_truthy
+      expect(target.read).to eql('hello')
+    end
+
+    it "puts file content as expected if a path is provided" do
+      source.write('world') and source.rewind
+
+      expect(ssh_util.put_file(target.path, nil, source.path)).to be_truthy
+      expect(target.read).to eql('world')
+    end
+
+    it "writes the expected message to the log file" do
+      ssh_util.put_file(target.path, 'stuff')
+      logger_file.rewind
+      logger_contents = logger_file.read
+      expect(logger_contents).to include("MiqSshUtil::put_file - Copying file to #{host}:#{target.path}.")
+      expect(logger_contents).to include("MiqSshUtil::put_file - Copying of file to #{host}:#{target.path}, complete.")
+    end
+  end
+
   context "#get_file" do
     let(:from) { 'remote_file' }
     let(:to) { 'local_file' }
