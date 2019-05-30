@@ -130,32 +130,32 @@ module ManageIQ
         run_session do |ssh|
           ssh.open_channel do |channel|
             channel.on_data do |_channel, data|
-              $log.debug "#{header} - STDOUT: #{data}" if $log
+              $log&.debug "#{header} - STDOUT: #{data}"
               outBuf << data
               data.each_line { |l| return outBuf if doneStr == l.chomp } unless doneStr.nil?
             end
 
             channel.on_extended_data do |_channel, data|
-              $log.debug "#{header} - STDERR: #{data}" if $log
+              $log&.debug "#{header} - STDERR: #{data}"
               errBuf << data
             end
 
             channel.on_request('exit-status') do |_channel, data|
               status = data.read_long
-              $log.debug "#{header} - STATUS: #{status}" if $log
+              $log&.debug "#{header} - STATUS: #{status}"
             end
 
             channel.on_request('exit-signal') do |_channel, data|
               signal = data.read_string
-              $log.debug "#{header} - SIGNAL: #{signal}" if $log
+              $log&.debug "#{header} - SIGNAL: #{signal}"
             end
 
             channel.on_eof do |_channel|
-              $log.debug "#{header} - EOF RECEIVED" if $log
+              $log&.debug "#{header} - EOF RECEIVED"
             end
 
             channel.on_close do |_channel|
-              $log.debug "#{header} - Command: #{cmd}, exit status: #{status}" if $log
+              $log&.debug "#{header} - Command: #{cmd}, exit status: #{status}"
               unless signal.nil? || status.zero?
                 raise "#{header} - Command #{cmd}, exited with signal #{signal}" unless signal.nil?
                 raise "#{header} - Command #{cmd}, exited with status #{status}" if errBuf.empty?
@@ -164,7 +164,8 @@ module ManageIQ
               return outBuf
             end
 
-            $log.debug "#{header} - Command: #{cmd} started." if $log
+            $log&.debug "#{header} - Command: #{cmd} started."
+
             channel.exec(cmd) do |chan, success|
               raise "#{header} - Could not execute command #{cmd}" unless success
               if stdin.present?
