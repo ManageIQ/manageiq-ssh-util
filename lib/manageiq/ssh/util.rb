@@ -122,6 +122,7 @@ module ManageIQ
         outBuf = ""
         status = nil
         signal = nil
+        header = "#{self.class}##{__method__}"
 
         # If passwordless sudo is true, we will just prepend every command by sudo
         cmd  = 'sudo ' + cmd if @passwordless_sudo
@@ -129,43 +130,43 @@ module ManageIQ
         run_session do |ssh|
           ssh.open_channel do |channel|
             channel.on_data do |_channel, data|
-              $log.debug "MiqSshUtil::exec - STDOUT: #{data}" if $log
+              $log.debug "#{header} - STDOUT: #{data}" if $log
               outBuf << data
               data.each_line { |l| return outBuf if doneStr == l.chomp } unless doneStr.nil?
             end
 
             channel.on_extended_data do |_channel, data|
-              $log.debug "MiqSshUtil::exec - STDERR: #{data}" if $log
+              $log.debug "#{header} - STDERR: #{data}" if $log
               errBuf << data
             end
 
             channel.on_request('exit-status') do |_channel, data|
               status = data.read_long
-              $log.debug "MiqSshUtil::exec - STATUS: #{status}" if $log
+              $log.debug "#{header} - STATUS: #{status}" if $log
             end
 
             channel.on_request('exit-signal') do |_channel, data|
               signal = data.read_string
-              $log.debug "MiqSshUtil::exec - SIGNAL: #{signal}" if $log
+              $log.debug "#{header} - SIGNAL: #{signal}" if $log
             end
 
             channel.on_eof do |_channel|
-              $log.debug "MiqSshUtil::exec - EOF RECEIVED" if $log
+              $log.debug "#{header} - EOF RECEIVED" if $log
             end
 
             channel.on_close do |_channel|
-              $log.debug "MiqSshUtil::exec - Command: #{cmd}, exit status: #{status}" if $log
+              $log.debug "#{header} - Command: #{cmd}, exit status: #{status}" if $log
               unless signal.nil? || status.zero?
-                raise "MiqSshUtil::exec - Command #{cmd}, exited with signal #{signal}" unless signal.nil?
-                raise "MiqSshUtil::exec - Command #{cmd}, exited with status #{status}" if errBuf.empty?
-                raise "MiqSshUtil::exec - Command #{cmd} failed: #{errBuf}, status: #{status}"
+                raise "#{header} - Command #{cmd}, exited with signal #{signal}" unless signal.nil?
+                raise "#{header} - Command #{cmd}, exited with status #{status}" if errBuf.empty?
+                raise "#{header} - Command #{cmd} failed: #{errBuf}, status: #{status}"
               end
               return outBuf
             end
 
-            $log.debug "MiqSshUtil::exec - Command: #{cmd} started." if $log
+            $log.debug "#{header} - Command: #{cmd} started." if $log
             channel.exec(cmd) do |chan, success|
-              raise "MiqSshUtil::exec - Could not execute command #{cmd}" unless success
+              raise "#{header} - Could not execute command #{cmd}" unless success
               if stdin.present?
                 chan.send_data(stdin)
                 chan.eof!
