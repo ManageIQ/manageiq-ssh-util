@@ -327,7 +327,7 @@ module ManageIQ
       #
       def self.shell_with_su(host, remote_user, remote_password, su_user, su_password, options = {})
         options[:su_user], options[:su_password] = su_user, su_password
-        ssu = MiqSshUtil.new(host, remote_user, remote_password, options)
+        ssu = new(host, remote_user, remote_password, options)
         yield(ssu, nil)
       rescue Net::SSH::AuthenticationFailed
         raise MiqException::MiqInvalidCredentialsError
