@@ -195,6 +195,7 @@ module ManageIQ
         status = nil
         signal = nil
         state  = :initial
+        header = "#{self.class}##{__method__}"
 
         run_session do |ssh|
           temp_cmd_file(cmd_str) do |cmd|
@@ -206,7 +207,7 @@ module ManageIQ
               end
 
               channel.on_data do |channel, data|
-                $log.debug "MiqSshUtil::suexec - state: [#{state.inspect}] STDOUT: [#{data.hex_dump.chomp}]" if $log
+                $log&.debug "#{header} - state: [#{state.inspect}] STDOUT: [#{data.hex_dump.chomp}]"
                 if state == :prompt
                   # Detect the common prompts
                   # someuser@somehost ... $  rootuser@somehost ... #  [someuser@somehost ...] $  [rootuser@somehost ...] #
@@ -229,7 +230,7 @@ module ManageIQ
                 if (state == :password_sent)
                   prompt << data.lstrip
                   if data.strip =~ /\#/
-                    $log.debug "MiqSshUtil::suexec - Superuser Prompt detected: sending command #{cmd}" if $log
+                    $log&.debug "#{header} - Superuser Prompt detected: sending command #{cmd}"
                     channel.send_data("#{cmd}\n")
                     state = :command_sent
                   end
@@ -239,7 +240,7 @@ module ManageIQ
                   prompt << data.lstrip
                   if data.strip =~ /[Pp]assword:/
                     prompt = ""
-                    $log.debug "MiqSshUtil::suexec - Password Prompt detected: sending su password" if $log
+                    $log&.debug "#{header} - Password Prompt detected: sending su password"
                     channel.send_data("#{@su_password}\n")
                     state = :password_sent
                   end
@@ -247,39 +248,39 @@ module ManageIQ
               end
 
               channel.on_extended_data do |_channel, data|
-                $log.debug "MiqSshUtil::suexec - STDERR: #{data}" if $log
+                $log&.debug "#{header} - STDERR: #{data}"
                 errBuf << data
               end
 
               channel.on_request('exit-status') do |_channel, data|
                 status = data.read_long
-                $log.debug "MiqSshUtil::suexec - STATUS: #{status}" if $log
+                $log&.debug "#{header} - STATUS: #{status}"
               end
 
               channel.on_request('exit-signal') do |_channel, data|
                 signal = data.read_string
-                $log.debug "MiqSshUtil::suexec - SIGNAL: #{signal}" if $log
+                $log&.debug "#{header} - SIGNAL: #{signal}"
               end
 
               channel.on_eof do |_channel|
-                $log.debug "MiqSshUtil::suexec - EOF RECEIVED" if $log
+                $log&.debug "#{header} - EOF RECEIVED"
               end
 
               channel.on_close do |_channel|
                 errBuf << prompt if [:initial, :password_sent].include?(state)
-                $log.debug "MiqSshUtil::suexec - Command: #{cmd}, exit status: #{status}" if $log
-                raise "MiqSshUtil::suexec - Command #{cmd}, exited with signal #{signal}" unless signal.nil?
+                $log&.debug "#{header} - Command: #{cmd}, exit status: #{status}"
+                raise "#{header} - Command #{cmd}, exited with signal #{signal}" unless signal.nil?
                 unless status.zero?
-                  raise "MiqSshUtil::suexec - Command #{cmd}, exited with status #{status}" if errBuf.empty?
-                  raise "MiqSshUtil::suexec - Command #{cmd} failed: #{errBuf}, status: #{status}"
+                  raise "#{header} - Command #{cmd}, exited with status #{status}" if errBuf.empty?
+                  raise "#{header} - Command #{cmd} failed: #{errBuf}, status: #{status}"
                 end
                 return outBuf
               end
 
-              $log.debug "MiqSshUtil::suexec - Command: [#{cmd_str}] started." if $log
+              $log.debug "#{header} - Command: [#{cmd_str}] started." if $log
               su_command = @su_user == 'root' ? "su -l\n" : "su -l #{@su_user}\n"
               channel.exec(su_command) do |chan, success|
-                raise "MiqSshUtil::suexec - Could not execute command #{cmd}" unless success
+                raise "#{header} - Could not execute command #{cmd}" unless success
                 if stdin.present?
                   chan.send_data(stdin)
                   chan.eof!
