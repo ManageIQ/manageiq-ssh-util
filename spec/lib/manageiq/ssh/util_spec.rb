@@ -48,8 +48,8 @@ RSpec.describe ManageIQ::SSH::Util do
       ssh_util.put_file(target.path, 'stuff')
       logger_file.rewind
       logger_contents = logger_file.read
-      expect(logger_contents).to include("MiqSshUtil::put_file - Copying file to #{host}:#{target.path}.")
-      expect(logger_contents).to include("MiqSshUtil::put_file - Copying of file to #{host}:#{target.path}, complete.")
+      expect(logger_contents).to include("ManageIQ::SSH::Util#put_file - Copying file to #{host}:#{target.path}.")
+      expect(logger_contents).to include("ManageIQ::SSH::Util#put_file - Copying of file to #{host}:#{target.path}, complete.")
     end
   end
 
