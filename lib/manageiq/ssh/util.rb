@@ -61,6 +61,11 @@ module ManageIQ
 
         # Obsolete, delete if passed in
         @options.delete(:authentication_prompt_delay)
+
+        # Use the default logger if present
+        unless @options.key?(:logger)
+          @options[:logger] = $log if $log
+        end
       end
 
       # Download the contents of the remote +from+ file to the local +to+ file. Some
