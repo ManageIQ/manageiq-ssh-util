@@ -80,9 +80,9 @@ module ManageIQ
       #
       def get_file(from, to)
         run_session do |ssh|
-          $log&.debug("MiqSshUtil::get_file - Copying file #{host}:#{from} to #{to}.")
+          $log&.debug("#{self.class}##{__method__} - Copying file #{host}:#{from} to #{to}.")
           data = ssh.sftp.download!(from, to)
-          $log&.debug("MiqSshUtil::get_file - Copying of #{host}:#{from} to #{to}, complete.")
+          $log&.debug("#{self.class}##{__method__} - Copying of #{host}:#{from} to #{to}, complete.")
           return data
         end
       end
@@ -97,9 +97,9 @@ module ManageIQ
         raise ArgumentError, "Need to provide either content or path" if content.nil? && path.nil?
         run_session do |ssh|
           content ||= IO.binread(path)
-          $log&.debug("MiqSshUtil::put_file - Copying file to #{@host}:#{to}.")
+          $log&.debug("#{self.class}##{__method__} - Copying file to #{@host}:#{to}.")
           ssh.sftp.file.open(to, 'wb') { |f| f.write(content) }
-          $log&.debug("MiqSshUtil::put_file - Copying of file to #{@host}:#{to}, complete.")
+          $log&.debug("#{self.class}##{__method__} - Copying of file to #{@host}:#{to}, complete.")
         end
       end
 
@@ -320,7 +320,7 @@ module ManageIQ
       # yields itself (and nil) and re-raises certain Net::SSH exceptions as
       # ManageIQ exceptions.
       #
-      #   MiqSshUtil.new(host, remote_user, remote_password, {:su_user => su_user, :su_password => su_password})
+      #   ManageIQ::SSH::Util.new(host, remote_user, remote_password, {:su_user => su_user, :su_password => su_password})
       #
       def self.shell_with_su(host, remote_user, remote_password, su_user, su_password, options = {})
         options[:su_user], options[:su_password] = su_user, su_password
@@ -403,6 +403,6 @@ module ManageIQ
           end
         end
       end
-    end
-  end
-end
+    end # Util
+  end # SSH
+end # ManageIQ

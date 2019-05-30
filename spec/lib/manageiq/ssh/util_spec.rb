@@ -66,8 +66,8 @@ RSpec.describe ManageIQ::SSH::Util do
       ssh_util.get_file(from, to)
       logger_file.rewind
       logger_contents = logger_file.read
-      expect(logger_contents).to include("MiqSshUtil::get_file - Copying file #{host}:#{from} to #{to}.")
-      expect(logger_contents).to include("MiqSshUtil::get_file - Copying of #{host}:#{from} to #{to}, complete.")
+      expect(logger_contents).to include("ManageIQ::SSH::Util#get_file - Copying file #{host}:#{from} to #{to}.")
+      expect(logger_contents).to include("ManageIQ::SSH::Util#get_file - Copying of #{host}:#{from} to #{to}, complete.")
     end
   end
 
