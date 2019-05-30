@@ -17,7 +17,8 @@ module ManageIQ
       # The +options+ param may contain options that are passed directly
       # to the Net::SSH constructor. By default the :non_interactive option is
       # set to true (meaning it will fail instead of prompting for a password),
-      # and the :verbose level is set to :warn.
+      # the :verbose level is set to :warn, and the :use_agent option is
+      # set to false.
       #
       # The following local options are also supported:
       #
@@ -43,17 +44,16 @@ module ManageIQ
         @password = password
         @status   = 0
         @shell    = nil
+
         @options  = {
           :password        => @password,
           :remember_host   => false,
           :verbose         => :warn,
           :non_interactive => true,
+          :use_agent       => false
         }.merge(options)
 
-        # Seems like in 2.9.2, there needs to be blank :keys, when we are passing private key as string
-        @options[:keys] = [] if options[:key_data]
-
-        # Pull the 'remember_host' key out of the hash because the SSH initializer will complain
+        # Pull our custom keys out of the hash because the SSH initializer will complain
         @remember_host     = @options.delete(:remember_host)
         @su_user           = @options.delete(:su_user)
         @su_password       = @options.delete(:su_password)
@@ -61,15 +61,7 @@ module ManageIQ
 
         # Obsolete, delete if passed in
         @options.delete(:authentication_prompt_delay)
-
-        # don't use the ssh-agent
-        @options[:use_agent] = false
-
-        # Set logging to use our default handle if it exists and one was not passed in
-        unless @options.key?(:logger)
-          #        @options[:logger] = $log if $log
-        end
-      end # def initialize
+      end
 
       # Download the contents of the remote +from+ file to the local +to+ file. Some
       # messages will be written to the global ManageIQ log in debug mode.
@@ -135,7 +127,7 @@ module ManageIQ
               data.each_line { |l| return outBuf if doneStr == l.chomp } unless doneStr.nil?
             end
 
-            channel.on_extended_data do |_channel, data|
+            channel.on_extended_data do |_channel, _type, data|
               $log&.debug "#{header} - STDERR: #{data}"
               errBuf << data
             end
@@ -247,7 +239,7 @@ module ManageIQ
                 end
               end
 
-              channel.on_extended_data do |_channel, data|
+              channel.on_extended_data do |_channel, _type, data|
                 $log&.debug "#{header} - STDERR: #{data}"
                 errBuf << data
               end
@@ -277,7 +269,7 @@ module ManageIQ
                 return outBuf
               end
 
-              $log.debug "#{header} - Command: [#{cmd_str}] started." if $log
+              $log&.debug "#{header} - Command: [#{cmd_str}] started."
               su_command = @su_user == 'root' ? "su -l\n" : "su -l #{@su_user}\n"
               channel.exec(su_command) do |chan, success|
                 raise "#{header} - Could not execute command #{cmd}" unless success
@@ -290,7 +282,7 @@ module ManageIQ
           end
           ssh.loop
         end
-      end # suexec
+      end
 
       # Creates a local temporary file under /var/tmp with +cmd+ as its contents.
       # The tempfile name is the name of the command with "miq-" prepended and ".sh"

@@ -5,3 +5,10 @@ main benefit is that it automatically handles channels and logging for
 various states when running remote commands. It also automatically handles
 terminal passwords and running commands via sudo, as well as automatic
 retry for host key mismatches.
+
+Some differences with the original MiqSshUtil library include:
+
+* The ability to override the default value for the :use_agent option.
+* Bug fixes for the on_extended_data ssh channel.
+
+The remaining differences are internal refactoring updates.
