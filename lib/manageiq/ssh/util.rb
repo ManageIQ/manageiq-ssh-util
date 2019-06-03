@@ -1,6 +1,7 @@
 require 'net/ssh'
 require 'net/sftp'
 require 'tempfile'
+require 'active_support/core_ext/object/blank'
 
 module ManageIQ
   class SSH
@@ -117,7 +118,7 @@ module ManageIQ
       def exec(cmd, doneStr = nil, stdin = nil)
         errBuf = ""
         outBuf = ""
-        status = nil
+        status = 0
         signal = nil
         header = "#{self.class}##{__method__}"
 
@@ -126,54 +127,54 @@ module ManageIQ
 
         run_session do |ssh|
           ssh.open_channel do |channel|
-            channel.on_data do |_channel, data|
-              $log&.debug "#{header} - STDOUT: #{data}"
-              outBuf << data
-              data.each_line { |l| return outBuf if doneStr == l.chomp } unless doneStr.nil?
-            end
-
-            channel.on_extended_data do |_channel, _type, data|
-              $log&.debug "#{header} - STDERR: #{data}"
-              errBuf << data
-            end
-
-            channel.on_request('exit-status') do |_channel, data|
-              status = data.read_long
-              $log&.debug "#{header} - STATUS: #{status}"
-            end
-
-            channel.on_request('exit-signal') do |_channel, data|
-              signal = data.read_string
-              $log&.debug "#{header} - SIGNAL: #{signal}"
-            end
-
-            channel.on_eof do |_channel|
-              $log&.debug "#{header} - EOF RECEIVED"
-            end
-
-            channel.on_close do |_channel|
-              $log&.debug "#{header} - Command: #{cmd}, exit status: #{status}"
-              unless signal.nil? || status.zero?
-                raise "#{header} - Command #{cmd}, exited with signal #{signal}" unless signal.nil?
-                raise "#{header} - Command #{cmd}, exited with status #{status}" if errBuf.empty?
-                raise "#{header} - Command #{cmd} failed: #{errBuf}, status: #{status}"
-              end
-              return outBuf
-            end
-
-            $log&.debug "#{header} - Command: #{cmd} started."
-
             channel.exec(cmd) do |chan, success|
               raise "#{header} - Could not execute command #{cmd}" unless success
+              $log&.debug "#{header} - Command: #{cmd} started."
+
               if stdin.present?
                 chan.send_data(stdin)
                 chan.eof!
               end
-            end
-          end
+
+              channel.on_data do |_channel, data|
+                $log&.debug "#{header} - STDOUT: #{data}"
+                outBuf << data
+                data.each_line { |l| return outBuf if doneStr == l.chomp } unless doneStr.nil?
+              end
+
+              channel.on_extended_data do |_channel, _type, data|
+                $log&.debug "#{header} - STDERR: #{data}"
+                errBuf << data
+              end
+
+              channel.on_request('exit-status') do |_channel, data|
+                status = data.read_long
+                $log&.debug "#{header} - STATUS: #{status}"
+              end
+
+              channel.on_request('exit-signal') do |_channel, data|
+                signal = data.read_string
+                $log&.debug "#{header} - SIGNAL: #{signal}"
+              end
+
+              channel.on_eof do |_channel|
+                $log&.debug "#{header} - EOF RECEIVED"
+              end
+
+              channel.on_close do |_channel|
+                $log&.debug "#{header} - Command: #{cmd}, exit status: #{status}"
+                unless signal.nil? || status.zero?
+                  raise "#{header} - Command #{cmd}, exited with signal #{signal}" unless signal.nil?
+                  raise "#{header} - Command #{cmd}, exited with status #{status}" if errBuf.empty?
+                  raise "#{header} - Command #{cmd} failed: #{errBuf}, status: #{status}"
+                end
+                return outBuf
+              end
+            end # exec
+          end # open_channel
           ssh.loop
-        end
-      end # def exec
+        end # run_session
+      end
 
       # Execute the remote +cmd+ via ssh. This is nearly identical to the exec
       # method, and is used only if the :su_user and :su_password options are
