@@ -11,7 +11,7 @@ module ManageIQ
       # The name of the host provided to the constructor.
       attr_reader :host
 
-      # Create and return a iqSshUtil object. A host, user and
+      # Create and return a ManageIQ::SSH::Util object. A host, user and
       # password must be specified.
       #
       # The +options+ param may contain options that are passed directly
@@ -310,7 +310,7 @@ module ManageIQ
         end
       end
 
-      # Shortcut method that creates and yields an MiqSshUtil object, with the +host+,
+      # Shortcut method that creates and yields a ManageIQ::SSH::Util object, with the +host+,
       # +remote_user+ and +remote_password+ options passed in as the first three
       # params to the constructor, while the +su_user+ and +su_password+ parameters
       # automatically set the corresponding :su_user and :su_password options. The
