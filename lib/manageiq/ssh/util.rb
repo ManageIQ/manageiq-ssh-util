@@ -164,8 +164,8 @@ module ManageIQ
               channel.on_close do |_channel|
                 $log&.debug "#{header} - Command: #{cmd}, exit status: #{status}"
                 if signal.present? || status.nonzero?
-                  raise "#{header} - Command #{cmd}, exited with signal #{signal}" unless signal.nil?
-                  raise "#{header} - Command #{cmd}, exited with status #{status}" if errBuf.empty?
+                  raise "#{header} - Command #{cmd}, exited with signal #{signal}" unless signal.blank?
+                  raise "#{header} - Command #{cmd}, exited with status #{status}" if errBuf.blank?
                   raise "#{header} - Command #{cmd} failed: #{errBuf}, status: #{status}"
                 end
                 return outBuf
