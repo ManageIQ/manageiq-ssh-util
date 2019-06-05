@@ -2,10 +2,10 @@ require 'manageiq/ssh/util'
 
 RSpec.describe ManageIQ::SSH::Util do
   let(:host) { 'localhost' }
-  let(:ssh_session) { double(Net::SSH::Connection::Session) }
-  let(:ssh_channel) { double(Net::SSH::Connection::Channel) }
-  let(:sftp_session) { double(Net::SFTP::Session) }
-  let(:sftp_download) { double(Net::SFTP::Operations::Download) }
+  let(:ssh_session) { instance_double(Net::SSH::Connection::Session) }
+  let(:ssh_channel) { instance_double(Net::SSH::Connection::Channel) }
+  let(:sftp_session) { instance_double(Net::SFTP::Session) }
+  let(:sftp_download) { instance_double(Net::SFTP::Operations::Download) }
   let(:ssh_util) { described_class.new(host, 'temp', 'something') }
   let(:logger_file) { StringIO.new }
   let(:data) { Net::SSH::Buffer.new([0].pack('N')) }
