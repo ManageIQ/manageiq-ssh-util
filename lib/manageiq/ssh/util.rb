@@ -21,6 +21,12 @@ module ManageIQ
       # the :verbose level is set to :warn, and the :use_agent option is
       # set to false.
       #
+      # The :logger option is not set by default. If you do set it, you should
+      # NOT use an existing logger, but instead use a separate custom log.
+      # If the log already exists, then the option is effectively ignored. Some
+      # additional logging will be written to the global ManageIQ log in
+      # debug mode.
+      #
       # The following local options are also supported:
       #
       # :passwordless_sudo - If set to true, then it is assumed that the sudo
@@ -39,7 +45,7 @@ module ManageIQ
       # to the command prompt when asked for as the result of using the su command.
       # Do not use if :passwordless_sudo is set to true.
       #
-      def initialize(host, user, password, options = {})
+      def initialize(host, user, password = nil, options = {})
         @host     = host
         @user     = user
         @password = password
@@ -62,11 +68,6 @@ module ManageIQ
 
         # Obsolete, delete if passed in
         @options.delete(:authentication_prompt_delay)
-
-        # Use the default logger if present
-        unless @options.key?(:logger)
-          @options[:logger] = $log if $log
-        end
       end
 
       # Download the contents of the remote +from+ file to the local +to+ file. Some
