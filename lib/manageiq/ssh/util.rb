@@ -150,7 +150,7 @@ module ManageIQ
               end
 
               channel.on_request('exit-status') do |_channel, data|
-                status = data.read_long
+                status = data.read_long || 0
                 $log&.debug "#{header} - STATUS: #{status}"
               end
 
@@ -166,8 +166,8 @@ module ManageIQ
               channel.on_close do |_channel|
                 $log&.debug "#{header} - Command: #{cmd}, exit status: #{status}"
                 if signal.present? || status.nonzero?
-                  raise "#{header} - Command #{cmd}, exited with signal #{signal}" unless signal.blank?
-                  raise "#{header} - Command #{cmd}, exited with status #{status}" if errBuf.blank?
+                  raise "#{header} - Command #{cmd}, exited with signal #{signal}" if signal.present?
+                  raise "#{header} - Command #{cmd}, exited with status #{status}" if status.nonzero?
                   raise "#{header} - Command #{cmd} failed: #{errBuf}, status: #{status}"
                 end
                 return outBuf
