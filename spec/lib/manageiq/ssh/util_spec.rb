@@ -19,11 +19,11 @@ RSpec.describe ManageIQ::SSH::Util do
 
   def stub_channels
     allow(ssh_channel).to receive(:on_data).and_yield(ssh_channel, 'some_data')
-    allow(ssh_channel).to receive(:on_extended_data).and_yield(ssh_channel, 1, 'some_extended_data')
     allow(ssh_channel).to receive(:on_request).with('exit-status').and_yield(ssh_channel, data)
     allow(ssh_channel).to receive(:on_request).with('exit-signal').and_yield(ssh_channel, data)
     allow(ssh_channel).to receive(:on_eof).and_yield(ssh_channel)
     allow(ssh_channel).to receive(:on_close).and_yield(ssh_channel)
+    allow(ssh_channel).to receive(:on_extended_data).and_yield(ssh_channel, 1, '')
   end
 
   def lastlog
@@ -31,8 +31,9 @@ RSpec.describe ManageIQ::SSH::Util do
     logger_file.read
   end
 
-  context "#exec" do
+  context "#exec", :exec do
     before do
+      stub_channels
       allow(ssh_session).to receive(:open_channel).and_yield(ssh_channel)
       allow(ssh_session).to receive(:loop)
     end
@@ -44,12 +45,16 @@ RSpec.describe ManageIQ::SSH::Util do
 
     it "returns the expected result if the command is successful" do
       allow(ssh_channel).to receive(:exec).and_yield(ssh_channel, true)
-      stub_channels
       expect(ssh_util.exec('whatever')).to eql('some_data')
     end
 
+    it "returns the expected result if the command is successful, but returns an error message" do
+      allow(ssh_channel).to receive(:exec).and_yield(ssh_channel, true)
+      allow(ssh_channel).to receive(:on_extended_data).and_yield(ssh_channel, 1, 'some_extended_data')
+      expect { ssh_util.exec('whatever') }.to raise_error(RuntimeError, /some_extended_data/)
+    end
+
     it "logs the expected message if the command is successful" do
-      stub_channels
       command = 'uname -a'
 
       allow(ssh_channel).to receive(:exec).and_yield(ssh_channel, true)
@@ -59,7 +64,6 @@ RSpec.describe ManageIQ::SSH::Util do
     end
 
     it "logs the expected channel messages" do
-      stub_channels
       command = 'uname -a'
 
       allow(ssh_channel).to receive(:exec).and_yield(ssh_channel, true)
