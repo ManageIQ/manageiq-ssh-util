@@ -26,6 +26,11 @@ RSpec.describe ManageIQ::SSH::Util do
     allow(ssh_channel).to receive(:on_close).and_yield(ssh_channel)
   end
 
+  def lastlog
+    logger_file.rewind
+    logger_file.read
+  end
+
   context "#exec" do
     before do
       allow(ssh_session).to receive(:open_channel).and_yield(ssh_channel)
@@ -44,10 +49,7 @@ RSpec.describe ManageIQ::SSH::Util do
       allow(ssh_channel).to receive(:exec).and_yield(ssh_channel, true)
       allow(ssh_util.exec(command))
 
-      logger_file.rewind
-      logger_contents = logger_file.read
-
-      expect(logger_contents).to include("Command: #{command}, exit status: 0")
+      expect(lastlog).to include("Command: #{command}, exit status: 0")
     end
   end
 
@@ -82,10 +84,8 @@ RSpec.describe ManageIQ::SSH::Util do
 
     it "writes the expected message to the log file" do
       ssh_util.put_file(target.path, 'stuff')
-      logger_file.rewind
-      logger_contents = logger_file.read
-      expect(logger_contents).to include("ManageIQ::SSH::Util#put_file - Copying file to #{host}:#{target.path}.")
-      expect(logger_contents).to include("ManageIQ::SSH::Util#put_file - Copying of file to #{host}:#{target.path}, complete.")
+      expect(lastlog).to include("ManageIQ::SSH::Util#put_file - Copying file to #{host}:#{target.path}.")
+      expect(lastlog).to include("ManageIQ::SSH::Util#put_file - Copying of file to #{host}:#{target.path}, complete.")
     end
   end
 
@@ -100,10 +100,8 @@ RSpec.describe ManageIQ::SSH::Util do
 
     it "writes the expected message to the log file" do
       ssh_util.get_file(from, to)
-      logger_file.rewind
-      logger_contents = logger_file.read
-      expect(logger_contents).to include("ManageIQ::SSH::Util#get_file - Copying file #{host}:#{from} to #{to}.")
-      expect(logger_contents).to include("ManageIQ::SSH::Util#get_file - Copying of #{host}:#{from} to #{to}, complete.")
+      expect(lastlog).to include("ManageIQ::SSH::Util#get_file - Copying file #{host}:#{from} to #{to}.")
+      expect(lastlog).to include("ManageIQ::SSH::Util#get_file - Copying of #{host}:#{from} to #{to}, complete.")
     end
   end
 
