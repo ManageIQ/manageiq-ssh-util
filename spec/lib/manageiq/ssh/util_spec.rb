@@ -18,8 +18,8 @@ RSpec.describe ManageIQ::SSH::Util do
   end
 
   def stub_channels
-    allow(ssh_channel).to receive(:on_data).and_yield(ssh_channel, 'data')
-    allow(ssh_channel).to receive(:on_extended_data).and_yield(ssh_channel, 1, 'extended_data')
+    allow(ssh_channel).to receive(:on_data).and_yield(ssh_channel, 'some_data')
+    allow(ssh_channel).to receive(:on_extended_data).and_yield(ssh_channel, 1, 'some_extended_data')
     allow(ssh_channel).to receive(:on_request).with('exit-status').and_yield(ssh_channel, data)
     allow(ssh_channel).to receive(:on_request).with('exit-signal').and_yield(ssh_channel, data)
     allow(ssh_channel).to receive(:on_eof).and_yield(ssh_channel)
@@ -45,7 +45,7 @@ RSpec.describe ManageIQ::SSH::Util do
     it "returns the expected result if the command is successful" do
       allow(ssh_channel).to receive(:exec).and_yield(ssh_channel, true)
       stub_channels
-      expect(ssh_util.exec('whatever')).to eql('data')
+      expect(ssh_util.exec('whatever')).to eql('some_data')
     end
 
     it "logs the expected message if the command is successful" do
