@@ -3,16 +3,52 @@ require 'manageiq/ssh/util'
 RSpec.describe ManageIQ::SSH::Util do
   let(:host) { 'localhost' }
   let(:ssh_session) { double(Net::SSH::Connection::Session) }
+  let(:ssh_channel) { double(Net::SSH::Connection::Channel) }
   let(:sftp_session) { double(Net::SFTP::Session) }
   let(:sftp_download) { double(Net::SFTP::Operations::Download) }
   let(:ssh_util) { described_class.new(host, 'temp', 'something') }
   let(:logger_file) { StringIO.new }
+  let(:data) { Net::SSH::Buffer.new([0].pack('N')) }
 
   before do
     $log = Logger.new(logger_file)
     allow(ssh_util).to receive(:run_session).and_yield(ssh_session)
     allow(ssh_session).to receive(:sftp).and_return(sftp_session)
     allow(sftp_session).to receive(:download!).and_return(sftp_download)
+  end
+
+  def stub_channels
+    allow(ssh_channel).to receive(:on_data).and_yield(ssh_channel, 'data')
+    allow(ssh_channel).to receive(:on_extended_data).and_yield(ssh_channel, 1, 'extended_data')
+    allow(ssh_channel).to receive(:on_request).with('exit-status').and_yield(ssh_channel, data)
+    allow(ssh_channel).to receive(:on_request).with('exit-signal').and_yield(ssh_channel, data)
+    allow(ssh_channel).to receive(:on_eof).and_yield(ssh_channel)
+    allow(ssh_channel).to receive(:on_close).and_yield(ssh_channel)
+  end
+
+  context "#exec" do
+    before do
+      allow(ssh_session).to receive(:open_channel).and_yield(ssh_channel)
+      allow(ssh_session).to receive(:loop)
+    end
+
+    it "raises an error if the command is unsuccessful" do
+      allow(ssh_channel).to receive(:exec).and_yield(ssh_channel, false)
+      expect { ssh_util.exec('bogus') }.to raise_error(RuntimeError)
+    end
+
+    it "logs the expected message if the command is successful" do
+      stub_channels
+      command = 'uname -a'
+
+      allow(ssh_channel).to receive(:exec).and_yield(ssh_channel, true)
+      allow(ssh_util.exec(command))
+
+      logger_file.rewind
+      logger_contents = logger_file.read
+
+      expect(logger_contents).to include("Command: #{command}, exit status: 0")
+    end
   end
 
   context "#put_file" do
@@ -24,7 +60,7 @@ RSpec.describe ManageIQ::SSH::Util do
     end
 
     it "raises an error if no target is provided" do
-      expect { ssh_util.put_file}.to raise_error(ArgumentError)
+      expect { ssh_util.put_file }.to raise_error(ArgumentError)
     end
 
     it "raises an error if both the content and path are nil" do
