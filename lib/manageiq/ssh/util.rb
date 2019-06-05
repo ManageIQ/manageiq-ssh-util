@@ -117,6 +117,10 @@ module ManageIQ
       # If present, the +stdin+ argument will be sent to the underlying
       # command as input for those commands that expect it, e.g. tee.
       #
+      # If a signal is received, the command returns any sort of non-zero
+      # error status, or if any stderr output is encountered then an exception
+      # is raised.
+      #
       def exec(cmd, doneStr = nil, stdin = nil)
         errBuf = ""
         outBuf = ""
