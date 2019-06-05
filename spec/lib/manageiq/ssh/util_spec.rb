@@ -51,6 +51,20 @@ RSpec.describe ManageIQ::SSH::Util do
 
       expect(lastlog).to include("Command: #{command}, exit status: 0")
     end
+
+    it "logs the expected channel messages" do
+      stub_channels
+      command = 'uname -a'
+
+      allow(ssh_channel).to receive(:exec).and_yield(ssh_channel, true)
+      allow(ssh_util.exec(command))
+
+      expect(lastlog).to include("STDOUT")
+      expect(lastlog).to include("STDERR")
+      expect(lastlog).to include("STATUS")
+      expect(lastlog).to include("SIGNAL")
+      expect(lastlog).to include("EOF RECEIVED")
+    end
   end
 
   context "#put_file" do
