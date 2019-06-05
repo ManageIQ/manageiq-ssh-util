@@ -42,6 +42,12 @@ RSpec.describe ManageIQ::SSH::Util do
       expect { ssh_util.exec('bogus') }.to raise_error(RuntimeError)
     end
 
+    it "returns the expected result if the command is successful" do
+      allow(ssh_channel).to receive(:exec).and_yield(ssh_channel, true)
+      stub_channels
+      expect(ssh_util.exec('whatever')).to eql('data')
+    end
+
     it "logs the expected message if the command is successful" do
       stub_channels
       command = 'uname -a'
