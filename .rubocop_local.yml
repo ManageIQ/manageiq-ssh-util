@@ -5,3 +5,7 @@ GlobalVars:
   AllowedVariables:
   # Loggers
   - $log
+Layout/EmptyLineAfterGuardClause:
+  Enabled: false
+Style/CommentedKeyword:
+  Enabled: false
