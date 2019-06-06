@@ -385,7 +385,10 @@ module ManageIQ
       # Returns whether or not the remote +filename+ exists.
       #
       def file_exists?(filename)
-        shell_exec("test -f #{filename}") rescue return false
+        shell_exec("test -f #{filename}")
+      rescue
+        false
+      else
         true
       end
 
