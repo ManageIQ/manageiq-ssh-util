@@ -130,12 +130,13 @@ module ManageIQ
         header = "#{self.class}##{__method__}"
 
         # If passwordless sudo is true then prepend every command with 'sudo'.
-        cmd  = 'sudo ' + cmd if @passwordless_sudo
+        cmd = 'sudo ' + cmd if @passwordless_sudo
 
         run_session do |ssh|
           ssh.open_channel do |channel|
             channel.exec(cmd) do |chan, success|
               raise "#{header} - Could not execute command #{cmd}" unless success
+
               $log&.debug("#{header} - Command: #{cmd} started.")
 
               if stdin.present?
