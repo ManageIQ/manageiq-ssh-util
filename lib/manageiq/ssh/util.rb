@@ -378,8 +378,7 @@ module ManageIQ
           tf = Tempfile.open('miqscvmm')
           tf.close
           get_file(file_path, tf.path)
-          f = File.open(tf.path, perm)
-          return f
+          File.open(tf.path, perm)
         end
       end
 
