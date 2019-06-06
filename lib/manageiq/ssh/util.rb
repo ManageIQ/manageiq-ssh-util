@@ -5,6 +5,7 @@ require 'active_support/core_ext/object/blank'
 
 module ManageIQ
   class SSH
+    # Utility wrapper around the net-ssh library.
     class Util
       # The exit status of the ssh command.
       attr_reader :status
@@ -38,12 +39,12 @@ module ManageIQ
       # error to be rescued and retried once after recording the host and
       # key in the known hosts file. By default this is false.
       #
-      # :su_user - If set, ssh commands for that object will be executed via sudo.
-      # Do not use if :passwordless_sudo is set to true.
+      # :su_user - If set, ssh commands for that object will be executed via
+      # sudo. Do not use if :passwordless_sudo is set to true.
       #
       # :su_password - When used in conjunction with :su_user, the password sent
-      # to the command prompt when asked for as the result of using the su command.
-      # Do not use if :passwordless_sudo is set to true.
+      # to the command prompt when asked for as the result of using the su
+      # command. Do not use if :passwordless_sudo is set to true.
       #
       def initialize(host, user, password = nil, options = {})
         @host     = host
@@ -110,7 +111,7 @@ module ManageIQ
       # If the :passwordless_sudo option was set to true in the constructor
       # then the +cmd+ will automatically be prepended with "sudo".
       #
-      # If specified, the data collection will stop the first time a +doneStr+
+      # If specified, the data collection will stop the first time a +done_string+
       # argument is encountered at the end of a line. In practice you would
       # typically specify a newline character.
       #
@@ -121,14 +122,14 @@ module ManageIQ
       # error status, or if any stderr output is encountered then an exception
       # is raised.
       #
-      def exec(cmd, doneStr = nil, stdin = nil)
-        errBuf = ""
-        outBuf = ""
+      def exec(cmd, done_string = nil, stdin = nil)
+        error_buffer = ""
+        output_buffer = ""
         status = 0
         signal = nil
         header = "#{self.class}##{__method__}"
 
-        # If passwordless sudo is true, we will just prepend every command by sudo
+        # If passwordless sudo is true then prepend every command with 'sudo'.
         cmd  = 'sudo ' + cmd if @passwordless_sudo
 
         run_session do |ssh|
@@ -144,13 +145,13 @@ module ManageIQ
 
               channel.on_data do |_channel, data|
                 $log&.debug "#{header} - STDOUT: #{data}"
-                outBuf << data
-                data.each_line { |l| return outBuf if doneStr == l.chomp } unless doneStr.nil?
+                output_buffer << data
+                data.each_line { |l| return output_buffer if done_string == l.chomp } unless done_string.nil?
               end
 
               channel.on_extended_data do |_channel, _type, data|
                 $log&.debug "#{header} - STDERR: #{data}"
-                errBuf << data
+                error_buffer << data
               end
 
               channel.on_request('exit-status') do |_channel, data|
@@ -169,12 +170,12 @@ module ManageIQ
 
               channel.on_close do |_channel|
                 $log&.debug "#{header} - Command: #{cmd}, exit status: #{status}"
-                if signal.present? || status.nonzero? || errBuf.present?
+                if signal.present? || status.nonzero? || error_buffer.present?
                   raise "#{header} - Command '#{cmd}' exited with signal #{signal}" if signal.present?
                   raise "#{header} - Command '#{cmd}' exited with status #{status}" if status.nonzero?
-                  raise "#{header} - Command '#{cmd}' failed: #{errBuf}"
+                  raise "#{header} - Command '#{cmd}' failed: #{error_buffer}"
                 end
-                return outBuf
+                return output_buffer
               end
             end # exec
           end # open_channel
@@ -191,11 +192,11 @@ module ManageIQ
       # creating a PTY session and dealing with prompts. From the perspective of
       # an end user they are essentially identical.
       #
-      def suexec(cmd_str, doneStr = nil, stdin = nil)
-        errBuf = ""
-        outBuf = ""
+      def suexec(cmd_str, done_string = nil, stdin = nil)
+        error_buffer = ""
+        output_buffer = ""
         prompt = ""
-        cmdRX  = ""
+        cmd_rx = ""
         status = nil
         signal = nil
         state  = :initial
@@ -216,19 +217,19 @@ module ManageIQ
                   # Detect the common prompts
                   # someuser@somehost ... $  rootuser@somehost ... #  [someuser@somehost ...] $  [rootuser@somehost ...] #
                   prompt = data if data =~ /^\[*[\w\-\.]+@[\w\-\.]+.+\]*[\#\$]\s*$/
-                  outBuf << data
-                  unless doneStr.nil?
-                    data.each_line { |l| return outBuf if doneStr == l.chomp }
+                  output_buffer << data
+                  unless done_string.nil?
+                    data.each_line { |l| return output_buffer if done_string == l.chomp }
                   end
 
-                  if outBuf[-prompt.length, prompt.length] == prompt
-                    return outBuf[0..(outBuf.length - prompt.length)]
+                  if output_buffer[-prompt.length, prompt.length] == prompt
+                    return output_buffer[0..(output_buffer.length - prompt.length)]
                   end
                 end
 
                 if state == :command_sent
-                  cmdRX << data
-                  state = :prompt if cmdRX == "#{cmd}\r\n"
+                  cmd_rx << data
+                  state = :prompt if cmd_rx == "#{cmd}\r\n"
                 end
 
                 if (state == :password_sent)
@@ -253,7 +254,7 @@ module ManageIQ
 
               channel.on_extended_data do |_channel, _type, data|
                 $log&.debug "#{header} - STDERR: #{data}"
-                errBuf << data
+                error_buffer << data
               end
 
               channel.on_request('exit-status') do |_channel, data|
@@ -271,14 +272,14 @@ module ManageIQ
               end
 
               channel.on_close do |_channel|
-                errBuf << prompt if [:initial, :password_sent].include?(state)
+                error_buffer << prompt if [:initial, :password_sent].include?(state)
                 $log&.debug "#{header} - Command: #{cmd}, exit status: #{status}"
                 raise "#{header} - Command #{cmd}, exited with signal #{signal}" unless signal.nil?
                 unless status.zero?
-                  raise "#{header} - Command #{cmd}, exited with status #{status}" if errBuf.empty?
-                  raise "#{header} - Command #{cmd} failed: #{errBuf}, status: #{status}"
+                  raise "#{header} - Command #{cmd}, exited with status #{status}" if error_buffer.empty?
+                  raise "#{header} - Command #{cmd} failed: #{error_buffer}, status: #{status}"
                 end
-                return outBuf
+                return output_buffer
               end
 
               $log&.debug "#{header} - Command: [#{cmd_str}] started."
@@ -340,7 +341,7 @@ module ManageIQ
       end
 
       # Executes the provided +cmd+ using the exec or suexec method, depending on
-      # whether or not the :su_user option is set. The +doneStr+ and +stdin+
+      # whether or not the :su_user option is set. The +done_string+ and +stdin+
       # arguments are passed along to the appropriate method as well.
       #
       # In the case of suexec, escape characters are automatically removed from
@@ -350,9 +351,9 @@ module ManageIQ
       # The _shell argument appears to be an artifact that has been retained
       # over time for reasons that aren't immediately apparent.
       #
-      def shell_exec(cmd, doneStr = nil, _shell = nil, stdin = nil)
-        return exec(cmd, doneStr, stdin) if @su_user.nil?
-        ret = suexec(cmd, doneStr, stdin)
+      def shell_exec(cmd, done_string = nil, _shell = nil, stdin = nil)
+        return exec(cmd, done_string, stdin) if @su_user.nil?
+        ret = suexec(cmd, done_string, stdin)
         # Remove escape character from the end of the line
         ret.sub!(/\e$/, '')
         ret
