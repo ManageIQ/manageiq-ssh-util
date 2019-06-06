@@ -136,7 +136,7 @@ module ManageIQ
           ssh.open_channel do |channel|
             channel.exec(cmd) do |chan, success|
               raise "#{header} - Could not execute command #{cmd}" unless success
-              $log&.debug "#{header} - Command: #{cmd} started."
+              $log&.debug("#{header} - Command: #{cmd} started.")
 
               if stdin.present?
                 chan.send_data(stdin)
@@ -144,32 +144,32 @@ module ManageIQ
               end
 
               channel.on_data do |_channel, data|
-                $log&.debug "#{header} - STDOUT: #{data}"
+                $log&.debug("#{header} - STDOUT: #{data}")
                 output_buffer << data
                 data.each_line { |l| return output_buffer if done_string == l.chomp } unless done_string.nil?
               end
 
               channel.on_extended_data do |_channel, _type, data|
-                $log&.debug "#{header} - STDERR: #{data}"
+                $log&.debug("#{header} - STDERR: #{data}")
                 error_buffer << data
               end
 
               channel.on_request('exit-status') do |_channel, data|
                 status = data.read_long || 0
-                $log&.debug "#{header} - STATUS: #{status}"
+                $log&.debug("#{header} - STATUS: #{status}")
               end
 
               channel.on_request('exit-signal') do |_channel, data|
                 signal = data.read_string
-                $log&.debug "#{header} - SIGNAL: #{signal}"
+                $log&.debug("#{header} - SIGNAL: #{signal}")
               end
 
               channel.on_eof do |_channel|
-                $log&.debug "#{header} - EOF RECEIVED"
+                $log&.debug("#{header} - EOF RECEIVED")
               end
 
               channel.on_close do |_channel|
-                $log&.debug "#{header} - Command: #{cmd}, exit status: #{status}"
+                $log&.debug("#{header} - Command: #{cmd}, exit status: #{status}")
                 if signal.present? || status.nonzero? || error_buffer.present?
                   raise "#{header} - Command '#{cmd}' exited with signal #{signal}" if signal.present?
                   raise "#{header} - Command '#{cmd}' exited with status #{status}" if status.nonzero?
@@ -212,7 +212,7 @@ module ManageIQ
               end
 
               channel.on_data do |channel, data|
-                $log&.debug "#{header} - state: [#{state.inspect}] STDOUT: [#{data.hex_dump.chomp}]"
+                $log&.debug("#{header} - state: [#{state.inspect}] STDOUT: [#{data.hex_dump.chomp}]")
                 if state == :prompt
                   # Detect the common prompts
                   # someuser@somehost ... $  rootuser@somehost ... #  [someuser@somehost ...] $  [rootuser@somehost ...] #
@@ -235,7 +235,7 @@ module ManageIQ
                 if (state == :password_sent)
                   prompt << data.lstrip
                   if data.strip =~ /\#/
-                    $log&.debug "#{header} - Superuser Prompt detected: sending command #{cmd}"
+                    $log&.debug("#{header} - Superuser Prompt detected: sending command #{cmd}")
                     channel.send_data("#{cmd}\n")
                     state = :command_sent
                   end
@@ -245,7 +245,7 @@ module ManageIQ
                   prompt << data.lstrip
                   if data.strip =~ /[Pp]assword:/
                     prompt = ""
-                    $log&.debug "#{header} - Password Prompt detected: sending su password"
+                    $log&.debug("#{header} - Password Prompt detected: sending su password")
                     channel.send_data("#{@su_password}\n")
                     state = :password_sent
                   end
@@ -253,27 +253,27 @@ module ManageIQ
               end
 
               channel.on_extended_data do |_channel, _type, data|
-                $log&.debug "#{header} - STDERR: #{data}"
+                $log&.debug("#{header} - STDERR: #{data}")
                 error_buffer << data
               end
 
               channel.on_request('exit-status') do |_channel, data|
                 status = data.read_long
-                $log&.debug "#{header} - STATUS: #{status}"
+                $log&.debug("#{header} - STATUS: #{status}")
               end
 
               channel.on_request('exit-signal') do |_channel, data|
                 signal = data.read_string
-                $log&.debug "#{header} - SIGNAL: #{signal}"
+                $log&.debug("#{header} - SIGNAL: #{signal}")
               end
 
               channel.on_eof do |_channel|
-                $log&.debug "#{header} - EOF RECEIVED"
+                $log&.debug("#{header} - EOF RECEIVED")
               end
 
               channel.on_close do |_channel|
                 error_buffer << prompt if [:initial, :password_sent].include?(state)
-                $log&.debug "#{header} - Command: #{cmd}, exit status: #{status}"
+                $log&.debug("#{header} - Command: #{cmd}, exit status: #{status}")
                 raise "#{header} - Command #{cmd}, exited with signal #{signal}" unless signal.nil?
                 unless status.zero?
                   raise "#{header} - Command #{cmd}, exited with status #{status}" if error_buffer.empty?
@@ -282,8 +282,9 @@ module ManageIQ
                 return output_buffer
               end
 
-              $log&.debug "#{header} - Command: [#{cmd_str}] started."
+              $log&.debug("#{header} - Command: [#{cmd_str}] started.")
               su_command = @su_user == 'root' ? "su -l\n" : "su -l #{@su_user}\n"
+
               channel.exec(su_command) do |chan, success|
                 raise "#{header} - Could not execute command #{cmd}" unless success
                 if stdin.present?
