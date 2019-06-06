@@ -233,7 +233,7 @@ module ManageIQ
                   state = :prompt if cmd_rx == "#{cmd}\r\n"
                 end
 
-                if (state == :password_sent)
+                if state == :password_sent
                   prompt << data.lstrip
                   if data.strip =~ /\#/
                     $log&.debug("#{header} - Superuser Prompt detected: sending command #{cmd}")
@@ -242,7 +242,7 @@ module ManageIQ
                   end
                 end
 
-                if (state == :initial)
+                if state == :initial
                   prompt << data.lstrip
                   if data.strip =~ /[Pp]assword:/
                     prompt = ""
@@ -367,7 +367,7 @@ module ManageIQ
       # Presumably this method was meant for use with the SCVMM provider
       # given the hardcoded name of the temporary file.
       #
-      def fileOpen(file_path, perm = 'r')
+      def file_open(file_path, perm = 'r')
         if block_given?
           Tempfile.open('miqscvmm') do |tf|
             tf.close
@@ -385,7 +385,7 @@ module ManageIQ
 
       # Returns whether or not the remote +filename+ exists.
       #
-      def fileExists?(filename)
+      def file_exists?(filename)
         shell_exec("test -f #{filename}") rescue return false
         true
       end
