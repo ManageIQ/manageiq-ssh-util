@@ -51,7 +51,6 @@ module ManageIQ
         @user     = user
         @password = password
         @status   = 0
-        @shell    = nil
 
         @options  = {
           :remember_host   => false,
