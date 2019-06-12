@@ -50,7 +50,6 @@ module ManageIQ
         @host     = host
         @user     = user
         @password = password
-        @status   = 0
 
         @options  = {
           :remember_host   => false,
@@ -197,7 +196,7 @@ module ManageIQ
         output_buffer = ""
         prompt = ""
         cmd_rx = ""
-        status = nil
+        status = 0
         signal = nil
         state  = :initial
         header = "#{self.class}##{__method__}"
