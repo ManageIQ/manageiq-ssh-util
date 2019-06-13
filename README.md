@@ -10,8 +10,6 @@ Some differences with the original MiqSshUtil library include:
 
 * The name has been changed and scoped under the ManageIQ namespace.
 * The ability to override the default value for the :use_agent option.
-* The $log logger is used by default if present and the :logger option
-  hasn't been explicitly overridden.
 * Bug fixes for the on_extended_data ssh channel.
 
 The remaining differences are internal refactoring updates.
