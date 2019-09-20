@@ -31,6 +31,32 @@ RSpec.describe ManageIQ::SSH::Util do
     logger_file.read
   end
 
+  context "#options" do
+    it "returns the expected default values for options" do
+      expect(ssh_util.options[:verbose]).to eql(:warn)
+      expect(ssh_util.options[:non_interactive]).to eql(true)
+      expect(ssh_util.options[:use_agent]).to eql(false)
+    end
+  end
+
+  context "#remember_host?" do
+    it "returns a boolean value indicating whether or not the remember host option is set" do
+      expect(ssh_util.remember_host?).to eql(false)
+    end
+  end
+
+  context "#host" do
+    it "returns the value of the host passed to the constructor" do
+      expect(ssh_util.host).to eql(host)
+    end
+  end
+
+  context "#user" do
+    it "returns the value of the user passed to the constructor" do
+      expect(ssh_util.user).to eql('temp')
+    end
+  end
+
   context "#exec", :exec do
     before do
       stub_channels

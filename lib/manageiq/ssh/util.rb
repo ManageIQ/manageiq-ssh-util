@@ -13,6 +13,12 @@ module ManageIQ
       # The name of the host provided to the constructor.
       attr_reader :host
 
+      # The options hash passed to the constructor.
+      attr_reader :options
+
+      # The username passed to the constructor.
+      attr_reader :user
+
       # Create and return a ManageIQ::SSH::Util object. A host, user and
       # password must be specified.
       #
@@ -68,6 +74,14 @@ module ManageIQ
 
         # Obsolete, delete if passed in
         @options.delete(:authentication_prompt_delay)
+      end
+
+      # Returns a boolean value indicating whether or not the +remember_host+
+      # option is set. This tells Net::SSH to record the host and key in the
+      # known hosts file, so that subsequent connections will remember them.
+      #
+      def remember_host?
+        !!@remember_host
       end
 
       # Download the contents of the remote +from+ file to the local +to+ file. Some
@@ -401,15 +415,15 @@ module ManageIQ
           Net::SSH.start(@host, @user, @options) do |ssh|
             yield(ssh)
           end
-        rescue Net::SSH::HostKeyMismatch => e
-          if @remember_host == true && first_try
+        rescue Net::SSH::HostKeyMismatch => err
+          if remember_host? && first_try
             # Save fingerprint and try again
             first_try = false
-            e.remember_host!
+            err.remember_host!
             retry
           else
             # Re-raise error
-            raise e
+            raise err
           end
         end
       end
