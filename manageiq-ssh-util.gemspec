@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.name        = "manageiq-ssh-util"
   s.version     = ManageIQ::SSH::Util::VERSION
   s.authors     = ["ManageIQ Developers"]
-  s.homepage    = "https://github.com/djberg96/manageiq-ssh-util"
+  s.homepage    = "https://github.com/ManageIQ/manageiq-ssh-util"
   s.summary     = "ManageIQ wrapper library for net-ssh"
   s.description = "ManageIQ wrapper library for net-ssh"
   s.licenses    = ["Apache-2.0"]
