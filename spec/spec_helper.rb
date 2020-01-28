@@ -1,4 +1,4 @@
-Dir[Rails.root.join("spec/shared/**/*.rb")].each { |f| require f }
+require "manageiq-ssh-util"
 
 RSpec.configure do |config|
   config.filter_run_when_matching(focus: true)
