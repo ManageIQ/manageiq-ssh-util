@@ -1,5 +1,3 @@
-require 'manageiq/ssh/util'
-
 RSpec.describe ManageIQ::SSH::Util do
   let(:host) { 'localhost' }
   let(:ssh_session) { instance_double(Net::SSH::Connection::Session) }

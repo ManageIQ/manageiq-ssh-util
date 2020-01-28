@@ -15,8 +15,12 @@ Gem::Specification.new do |s|
 
   s.files = Dir["{app,lib}/**/*", "LICENSE.txt", "Rakefile", "README.md"]
 
-  s.add_dependency "net-ssh", "~> 4.2"
+  s.add_dependency "activesupport"
+  s.add_dependency "net-ssh",  "~> 4.2"
+  s.add_dependency "net-sftp", "~> 2.1"
 
   s.add_development_dependency "codeclimate-test-reporter", "~> 1.0.0"
+  s.add_development_dependency "rake"
+  s.add_development_dependency "rspec"
   s.add_development_dependency "simplecov"
 end
