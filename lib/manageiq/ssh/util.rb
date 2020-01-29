@@ -348,10 +348,6 @@ module ManageIQ
         options[:su_user], options[:su_password] = su_user, su_password
         ssu = new(host, remote_user, remote_password, options)
         yield(ssu, nil)
-      rescue Net::SSH::AuthenticationFailed
-        raise MiqException::MiqInvalidCredentialsError
-      rescue Net::SSH::HostKeyMismatch
-        raise MiqException::MiqSshUtilHostKeyMismatch
       end
 
       # Executes the provided +cmd+ using the exec or suexec method, depending on
