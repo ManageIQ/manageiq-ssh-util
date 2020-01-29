@@ -339,8 +339,7 @@ module ManageIQ
       # remaining options are passed normally.
       #
       # This method is functionally identical to the following code, except that it
-      # yields itself (and nil) and re-raises certain Net::SSH exceptions as
-      # ManageIQ exceptions.
+      # yields itself (and nil).
       #
       #   ManageIQ::SSH::Util.new(host, remote_user, remote_password, {:su_user => su_user, :su_password => su_password})
       #
