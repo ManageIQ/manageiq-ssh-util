@@ -64,7 +64,7 @@ module ManageIQ
           :use_agent       => false
         }.merge(options)
 
-        options[:password] = password if password
+        @options[:password] = password if password
 
         # Pull our custom keys out of the hash because the SSH initializer will complain
         @remember_host     = @options.delete(:remember_host)

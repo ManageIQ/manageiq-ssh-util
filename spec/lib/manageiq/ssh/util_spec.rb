@@ -55,6 +55,33 @@ RSpec.describe ManageIQ::SSH::Util do
     end
   end
 
+  context "#shell_with_su" do
+    before do
+      @remote_user = 'some_remote_user'
+      @remote_pass = 'some_remote_password'
+      @sudo_user   = 'some_sudo_user'
+      @sudo_pass   = 'some_sudo_password'
+    end
+
+    it "requires remote user and password, as well as sudo user and password" do
+      expect { described_class.shell_with_su(host) }.to raise_error(ArgumentError)
+      expect { described_class.shell_with_su(host, @remote_user, @remote_password) }.to raise_error(ArgumentError)
+    end
+
+    it "requires a block and yields arguments" do
+      expect { |b| described_class.shell_with_su(host, @remote_user, @remote_pass, @sudo_user, @sudo_pass, &b) }.to yield_with_args
+    end
+
+    it "creates a manageiq-ssh-util object with the expected attributes" do
+      described_class.shell_with_su(host, @remote_user, @remote_pass, @sudo_user, @sudo_pass) do |ssh_util|
+        expect(ssh_util.options).to include(:verbose => :warn, :use_agent => false, :non_interactive => true, :password => @remote_pass)
+        expect(ssh_util.options).not_to include(:remember_host, :su_user, :su_password, :passwordless_sudo)
+        expect(ssh_util.host).to eql(host)
+        expect(ssh_util.user).to eql(@remote_user)
+      end
+    end
+  end
+
   context "#exec", :exec do
     before do
       stub_channels
