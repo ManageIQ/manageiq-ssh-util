@@ -31,27 +31,27 @@ RSpec.describe ManageIQ::SSH::Util do
 
   context "#options" do
     it "returns the expected default values for options" do
-      expect(ssh_util.options[:verbose]).to eql(:warn)
-      expect(ssh_util.options[:non_interactive]).to eql(true)
-      expect(ssh_util.options[:use_agent]).to eql(false)
+      expect(ssh_util.options[:verbose]).to eq(:warn)
+      expect(ssh_util.options[:non_interactive]).to eq(true)
+      expect(ssh_util.options[:use_agent]).to eq(false)
     end
   end
 
   context "#remember_host?" do
     it "returns a boolean value indicating whether or not the remember host option is set" do
-      expect(ssh_util.remember_host?).to eql(false)
+      expect(ssh_util.remember_host?).to eq(false)
     end
   end
 
   context "#host" do
     it "returns the value of the host passed to the constructor" do
-      expect(ssh_util.host).to eql(host)
+      expect(ssh_util.host).to eq(host)
     end
   end
 
   context "#user" do
     it "returns the value of the user passed to the constructor" do
-      expect(ssh_util.user).to eql('temp')
+      expect(ssh_util.user).to eq('temp')
     end
   end
 
@@ -68,16 +68,12 @@ RSpec.describe ManageIQ::SSH::Util do
       expect { described_class.shell_with_su(host, @remote_user, @remote_password) }.to raise_error(ArgumentError)
     end
 
-    it "requires a block and yields arguments" do
-      expect { |b| described_class.shell_with_su(host, @remote_user, @remote_pass, @sudo_user, @sudo_pass, &b) }.to yield_with_args
-    end
-
     it "creates a manageiq-ssh-util object with the expected attributes" do
-      described_class.shell_with_su(host, @remote_user, @remote_pass, @sudo_user, @sudo_pass) do |ssh_util|
+      described_class.shell_with_su(host, @remote_user, @remote_pass, @sudo_user, @sudo_pass) do |ssh_util, _shell|
         expect(ssh_util.options).to include(:verbose => :warn, :use_agent => false, :non_interactive => true, :password => @remote_pass)
         expect(ssh_util.options).not_to include(:remember_host, :su_user, :su_password, :passwordless_sudo)
-        expect(ssh_util.host).to eql(host)
-        expect(ssh_util.user).to eql(@remote_user)
+        expect(ssh_util.host).to eq(host)
+        expect(ssh_util.user).to eq(@remote_user)
       end
     end
   end
@@ -96,7 +92,7 @@ RSpec.describe ManageIQ::SSH::Util do
 
     it "returns the expected result if the command is successful" do
       allow(ssh_channel).to receive(:exec).and_yield(ssh_channel, true)
-      expect(ssh_util.exec('whatever')).to eql('some_data')
+      expect(ssh_util.exec('whatever')).to eq('some_data')
     end
 
     it "returns the expected result if the command is successful, but returns an error message" do
@@ -147,14 +143,14 @@ RSpec.describe ManageIQ::SSH::Util do
 
     it "puts file content as expected if content is provided" do
       expect(ssh_util.put_file(target.path, 'hello')).to be_truthy
-      expect(target.read).to eql('hello')
+      expect(target.read).to eq('hello')
     end
 
     it "puts file content as expected if a path is provided" do
       source.write('world') and source.rewind
 
       expect(ssh_util.put_file(target.path, nil, source.path)).to be_truthy
-      expect(target.read).to eql('world')
+      expect(target.read).to eq('world')
     end
 
     it "writes the expected message to the log file" do
