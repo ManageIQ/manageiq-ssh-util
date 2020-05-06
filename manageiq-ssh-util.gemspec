@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.description = "ManageIQ wrapper library for net-ssh"
   s.licenses    = ["Apache-2.0"]
 
-  s.files = Dir["{app,lib}/**/*", "LICENSE.txt", "Rakefile", "README.md"]
+  s.files = Dir["{app,lib}/**/*", "LICENSE.txt", "Rakefile", "README.md", "CHANGELOG.md"]
 
   s.add_dependency "activesupport"
   s.add_dependency "net-ssh",  "~> 4.2"
