@@ -1,3 +1,8 @@
+if ENV['CI']
+  require 'simplecov'
+  SimpleCov.start
+end
+
 require "manageiq-ssh-util"
 
 RSpec.configure do |config|
