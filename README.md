@@ -1,7 +1,7 @@
 manageiq-ssh-util
 
 [![Gem Version](https://badge.fury.io/rb/manageiq-ssh-util.svg)](http://badge.fury.io/rb/manageiq-ssh-util)
-[![Build Status](https://travis-ci.com/ManageIQ/manageiq-ssh-util.svg)](https://travis-ci.com/ManageIQ/manageiq-ssh-util)
+[![CI](https://github.com/ManageIQ/manageiq-ssh-util/actions/workflows/ci.yaml/badge.svg)](https://github.com/ManageIQ/manageiq-ssh-util/actions/workflows/ci.yaml)
 [![Code Climate](https://codeclimate.com/github/ManageIQ/manageiq-ssh-util.svg)](https://codeclimate.com/github/ManageIQ/manageiq-ssh-util)
 [![Test Coverage](https://codeclimate.com/github/ManageIQ/manageiq-ssh-util/badges/coverage.svg)](https://codeclimate.com/github/ManageIQ/manageiq-ssh-util/coverage)
 
