@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
 
   s.files = Dir["{app,lib}/**/*", "LICENSE.txt", "Rakefile", "README.md", "CHANGELOG.md"]
 
-  s.required_ruby_version = Gem::Requirement.new(">= 2.6")
+  s.required_ruby_version = Gem::Requirement.new(">= 3.2")
 
   s.add_dependency "activesupport"
   s.add_dependency "bcrypt_pbkdf", ">= 1.0", "< 2.0"
